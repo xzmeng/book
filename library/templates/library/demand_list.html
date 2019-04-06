@@ -1,0 +1,25 @@
+{% extends 'library/base.html' %}
+
+{% block title %} 需求申请 {% endblock %}
+
+
+{% block content %}
+
+    <div class="container myContainer">
+        {% if error %}
+        <h1>{{ error }}</h1>
+        {% else %}
+        <h1>需求申请列表 <a href="/demand_create/">申请图书</a></h1>
+
+
+        <ol class="list-group">
+            {% for demand in demand_list %}
+              <li class="list-group-item"><a href="{% url 'demand_detail' demand.id %}">{{ demand.book_name }}</a></li>
+            {% empty %}
+                <h2>当前没有需求申请。</h2>
+            {% endfor %}
+        </ol>
+        {% endif %}
+    </div>
+
+{% endblock %}

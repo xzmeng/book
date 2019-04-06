@@ -29,7 +29,7 @@ def init_reader_data(amount=50):
         u.set_password('password')
         u.save()
 
-        r = Reader.objects.get_or_create(user=u, name=fake.name(), phone=int(u.username))[0]
+        r = Reader.objects.get_or_create(user=u, name=fake.name(), phone=u.username)[0]
         r.balance = round(random.random() * 100, 2)
         r.photo = str(r.user_id) + '.jpg'
         r.save()

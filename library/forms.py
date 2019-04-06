@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from django import forms
+from .models import Demand
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(
-        max_length=16,
+    username = forms.IntegerField(
         label=u'用户名：',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -46,6 +46,7 @@ class RegisterForm(forms.Form):
         label=u'密码：',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
+            'type': 'password',
             'name': 'password',
             'id': 'id_password',
         }),
@@ -79,6 +80,7 @@ class RegisterForm(forms.Form):
         required=False,
     )
 
+
 class ResetPasswordForm(forms.Form):
     old_password = forms.CharField(
         label=u'原始密码：',
@@ -105,26 +107,47 @@ class ResetPasswordForm(forms.Form):
         }),
     )
 
+
 class SearchForm(forms.Form):
-        CHOICES = [
-            (u'ISBN', u'ISBN'),
-            (u'书名', u'书名'),
-            (u'作者', u'作者')
-        ]
+    CHOICES = [
+        (u'ISBN', u'ISBN'),
+        (u'书名', u'书名'),
+        (u'作者', u'作者')
+    ]
 
-        search_by = forms.ChoiceField(
-            label='',
-            choices=CHOICES,
-            widget=forms.RadioSelect(),
-            initial=u'书名',
-        )
+    search_by = forms.ChoiceField(
+        label='',
+        choices=CHOICES,
+        widget=forms.RadioSelect(),
+        initial=u'书名',
+    )
 
-        keyword = forms.CharField(
-            label='',
-            max_length=32,
-            widget=forms.TextInput(attrs={
-                'class': 'form-control input-lg',
-                'placeholder': u'请输入需要检索的图书信息',
-                'name': 'keyword',
-            })
-        )
+    keyword = forms.CharField(
+        label='',
+        max_length=32,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control input-lg',
+            'placeholder': u'请输入需要检索的图书信息',
+            'name': 'keyword',
+        })
+    )
+
+
+class DemandForm(forms.ModelForm):
+    class Meta:
+        model = Demand
+        fields = ['book_name', 'book_author', 'note']
+        widgets = {
+            'book_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'name': '书名',
+            }),
+            'book_author': forms.TextInput(attrs={
+                'class': 'form-control',
+                'name': '作者',
+            }),
+            'note': forms.Textarea(attrs={
+                'class': 'form-control',
+                'name': '备注',
+            }),
+        }

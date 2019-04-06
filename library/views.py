@@ -12,8 +12,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import json
 
-from library.models import Book, Reader, User, Borrowing
-from library.forms import SearchForm, LoginForm, RegisterForm, ResetPasswordForm
+from django.views.generic import ListView
+
+from library.models import Book, Reader, User, Borrowing, Demand
+from library.forms import SearchForm, LoginForm, RegisterForm, ResetPasswordForm, DemandForm
 
 
 def index(request):
@@ -27,25 +29,30 @@ def user_login(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('/')
 
-    state = None
+    none = None
+    state = none
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        login_form = LoginForm(request.POST)
+        if login_form.is_valid():
+            username = request.POST.get('username')
+            password = request.POST.get('password')
 
-        user = auth.authenticate(username=username, password=password)
+            user = auth.authenticate(username=username, password=password)
 
-        if user:
-            if user.is_active:
-                auth.login(request, user)
-                return HttpResponseRedirect('/')
+            if user:
+                if user.is_active:
+                    auth.login(request, user)
+                    return HttpResponseRedirect('/')
+                else:
+                    return HttpResponse(u'Your account is disabled.')
             else:
-                return HttpResponse(u'Your account is disabled.')
-        else:
-            state = 'not_exist_or_password_error'
+                state = 'not_exist_or_password_error'
+    else:
+        login_form = LoginForm()
 
     context = {
-        'loginForm': LoginForm(),
+        'loginForm': login_form,
         'state': state,
     }
 
@@ -56,38 +63,34 @@ def user_register(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('/')
 
-    registerForm = RegisterForm()
-
     state = None
     if request.method == 'POST':
         registerForm = RegisterForm(request.POST, request.FILES)
-        password = request.POST.get('password', '')
-        repeat_password = request.POST.get('re_password', '')
-        if password == '' or repeat_password == '':
-            state = 'empty'
-        elif password != repeat_password:
-            state = 'repeat_error'
-        else:
-            username = request.POST.get('username', '')
-            name = request.POST.get('name', '')
-            if User.objects.filter(username=username):
-                state = 'user_exist'
+        if registerForm.is_valid():
+            password = request.POST.get('password', '')
+            repeat_password = request.POST.get('re_password', '')
+            if password == '' or repeat_password == '':
+                state = 'empty'
+            elif password != repeat_password:
+                state = 'repeat_error'
             else:
-                new_user = User.objects.create(username=username)
-                new_user.set_password(password)
-                new_user.save()
-                new_reader = Reader.objects.create(user=new_user, name=name, phone=int(username))
-                new_reader.photo = request.FILES['photo']
-                new_reader.save()
-                state = 'success'
+                username = request.POST.get('username', '')
+                name = request.POST.get('name', '')
+                if User.objects.filter(username=username):
+                    state = 'user_exist'
+                else:
+                    new_user = User.objects.create(username=username)
+                    new_user.set_password(password)
+                    new_user.save()
+                    new_reader = Reader.objects.create(user=new_user, name=name, phone=username)
+                    if request.FILES.get('photo'):
+                        new_reader.photo = request.FILES['photo']
+                    new_reader.save()
+                    state = 'success'
 
-                auth.login(request, new_user)
-
-                context = {
-                    'state': state,
-                    'registerForm': registerForm,
-                }
-                return render(request, 'library/register.html', context)
+                    auth.login(request, new_user)
+    else:
+        registerForm = RegisterForm()
 
     context = {
         'state': state,
@@ -314,6 +317,35 @@ def statistics(request):
     }
     return render(request, 'library/statistics.html', context)
 
+
+def demand_create(request):
+    if request.method == 'POST':
+        form = DemandForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = request.user
+            instance.save()
+            return render(request, 'library/demand_created.html')
+    else:
+        form = DemandForm()
+    return render(request, 'library/demand_create.html',
+                  {'form': form})
+
+
+def demand_list(request):
+    if not request.user.is_authenticated:
+        return render(request, 'library/demand_list.html',
+                      {'error': '请先登录'})
+
+    demand_list = Demand.objects.filter(user=request.user)
+    return render(request, 'library/demand_list.html',
+                  {'demand_list': demand_list})
+
+
+def demand_detail(request, id):
+    demand = Demand.objects.get(id=id)
+    return render(request, 'library/demand_detail.html',
+                  {'demand_detail': demand})
 
 def about(request):
     return render(request, 'library/about.html', {})

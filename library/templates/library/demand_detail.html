@@ -1,0 +1,15 @@
+{% extends 'library/base.html' %}
+
+{% block title %} 需求申请 {% endblock %}
+
+{% block content %}
+    <div class="container myContainer">
+    <h2>需求申请</h2>
+        <p>书名:{{ demand_detail.book_name }}</p>
+        <p>作者:{{ demand_detail.book_author }}</p>
+        <p>备注:{{ demand_detail.note }}</p>
+    <h2>申请状态</h2>
+        <p>状态:{{ demand_detail.status }}</p>
+    <p>回复:{{ demand_detail.msg }}</p>
+    </div>
+{% endblock %}

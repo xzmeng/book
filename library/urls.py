@@ -5,6 +5,7 @@ from django.conf.urls import url
 from django.contrib.staticfiles import views as static_views
 from django.conf.urls.static import static
 from django.conf import settings
+from django.urls import path
 
 import library.views as views
 
@@ -21,4 +22,7 @@ urlpatterns = [
                   url(r'^profile/', views.profile, name='profile'),
                   url(r'^statistics/', views.statistics, name='statistics'),
                   url(r'^about/', views.about, name='about'),
+                    url(r'^demand_create/', views.demand_create, name='demand_create'),
+                    url(r'^demand_list/', views.demand_list, name='demand_list'),
+                    path('demand_detail/<int:id>/', views.demand_detail, name='demand_detail')
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
